@@ -1,0 +1,17 @@
+# 仓库内统一 LF；Windows 上 clone 也不要 CRLF，否则 CI 的 bash 脚本会 bad interpreter
+* text=auto eol=lf
+
+*.sh   text eol=lf
+*.py   text eol=lf
+*.yml  text eol=lf
+*.json text eol=lf
+*.md   text eol=lf
+*.plist text eol=lf
+*.xml   text eol=lf
+*.swift text eol=lf
+*.html  text eol=lf
+
+# 二进制不要动
+*.png  binary
+*.ipa  binary
+*.p12  binary

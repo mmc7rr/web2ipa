@@ -1,0 +1,25 @@
+# 依赖与构建产物
+node_modules/
+build/
+ios/
+android/
+*.ipa
+*.xcarchive
+
+# Capacitor 同步出来的副本
+www/capacitor.js
+ios/App/App/public/
+ios/App/App/capacitor.config.json
+ios/App/Pods/
+ios/App/build/
+
+# Python
+__pycache__/
+*.pyc
+
+# 系统 / 编辑器
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.xcuserdatad/

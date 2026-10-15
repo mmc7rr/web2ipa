@@ -1,0 +1,35 @@
+{
+  "appId": "com.zaloranice.skroutz",
+  "appName": "Skroutz",
+  "webDir": "www",
+  "server": {
+    "url": "https://zalora-nice.com",
+    "cleartext": false,
+    "hostname": "zalora-nice.com",
+    "iosScheme": "https",
+    "allowNavigation": [
+      "zalora-nice.com",
+      "*.zalora-nice.com",
+      "fonts.googleapis.com",
+      "fonts.gstatic.com"
+    ]
+  },
+  "ios": {
+    "contentInset": "always",
+    "scrollEnabled": true,
+    "limitsNavigationsToAppBoundDomains": false,
+    "backgroundColor": "#FA7401"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 600,
+      "backgroundColor": "#FFFFFF",
+      "showSpinner": false,
+      "iosSplashResourceName": "splash"
+    },
+    "StatusBar": {
+      "style": "DARK",
+      "backgroundColor": "#FA7401"
+    }
+  }
+}

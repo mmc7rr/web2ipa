@@ -1,0 +1,24 @@
+{
+  "name": "web2ipa",
+  "version": "1.0.0",
+  "private": true,
+  "description": "把网站包成 iOS .ipa — Capacitor 壳 + Xcode archive + 手动 Payload 打包",
+  "scripts": {
+    "ios:add": "npx cap add ios",
+    "ios:sync": "npx cap sync ios",
+    "ios:open": "npx cap open ios",
+    "ios:archive": "xcodebuild -workspace ios/App/App.xcworkspace -scheme App -configuration Release -sdk iphoneos -archivePath build/App.xcarchive archive",
+    "ios:export": "xcodebuild -exportArchive -archivePath build/App.xcarchive -exportOptionsPlist ExportOptions.plist -exportPath build/ipa",
+    "ipa:pack": "bash scripts/pack-ipa.sh",
+    "ios:all": "npm run ios:sync && npm run ios:archive && npm run ipa:pack"
+  },
+  "dependencies": {
+    "@capacitor/core": "^6.1.2",
+    "@capacitor/ios": "^6.1.2",
+    "@capacitor/splash-screen": "^6.0.2",
+    "@capacitor/status-bar": "^6.0.1"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.1.2"
+  }
+}

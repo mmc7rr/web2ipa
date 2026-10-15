@@ -1,0 +1,44 @@
+<!-- 与 Info.plist.snippet.xml 一起合进 ios/App/App/Info.plist 顶层 <dict> -->
+<!-- 本项目取值：站点为繁体中文电商平台，主场景竖屏 -->
+
+<key>CFBundleDisplayName</key>
+<string>Skroutz</string>
+
+<key>CFBundleIdentifier</key>
+<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+
+<!-- 繁体中文优先，避免权限弹窗文案走英文兜底 -->
+<key>CFBundleDevelopmentRegion</key>
+<string>zh_TW</string>
+<key>CFBundleLocalizations</key>
+<array>
+  <string>zh_TW</string>
+  <string>zh_CN</string>
+  <string>en</string>
+</array>
+
+<!-- 竖屏为主，平板放开横屏 -->
+<key>UISupportedInterfaceOrientations</key>
+<array>
+  <string>UIInterfaceOrientationPortrait</string>
+  <string>UIInterfaceOrientationPortraitUpsideDown</string>
+</array>
+<key>UISupportedInterfaceOrientations~ipad</key>
+<array>
+  <string>UIInterfaceOrientationPortrait</string>
+  <string>UIInterfaceOrientationPortraitUpsideDown</string>
+  <string>UIInterfaceOrientationLandscapeLeft</string>
+  <string>UIInterfaceOrientationLandscapeRight</string>
+</array>
+
+<key>UIStatusBarStyle</key>
+<string>UIStatusBarStyleDarkContent</string>
+<key>UIViewControllerBasedStatusBarAppearance</key>
+<true/>
+
+<!-- 站点未做深色适配，先锁浅色 -->
+<key>UIUserInterfaceStyle</key>
+<string>Light</string>
+
+<key>UILaunchStoryboardName</key>
+<string>LaunchScreen</string>

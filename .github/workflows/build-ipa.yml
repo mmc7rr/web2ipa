@@ -1,0 +1,138 @@
+name: build-ipa
+
+# 没有 Mac 也能出包：整个构建跑在 GitHub 的 macOS runner 上，产物当 artifact 下载。
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "unsigned = 跳过签名（拿 .ipa 去 Windows 上自签安装）；signed = 用仓库 Secrets 里的证书签名"
+        type: choice
+        options: ["unsigned", "signed"]
+        default: "unsigned"
+      method:
+        description: "signed 模式的分发方式"
+        type: choice
+        options: ["development", "ad-hoc", "app-store-connect", "enterprise"]
+        default: "development"
+  push:
+    branches: [main]
+
+concurrency:
+  group: build-ipa-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  APP_NAME: Skroutz
+  BUNDLE_ID: com.zaloranice.skroutz
+
+jobs:
+  build:
+    runs-on: macos-14
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: 打印工具链版本
+        run: |
+          xcodebuild -version
+          node -v
+          python3 -V
+
+      - name: 安装 npm 依赖
+        run: npm install --no-audit --no-fund
+
+      - name: 生成并同步 iOS 工程
+        run: |
+          set -eux
+          if [ ! -d ios ]; then npx cap add ios; fi
+          npx cap sync ios
+
+      - name: 铺图标与启动图
+        run: |
+          set -eux
+          if npx --yes @capacitor/assets generate --ios; then
+            echo "== @capacitor/assets 成功"
+          else
+            echo "!! @capacitor/assets 失败，回退到手工拷 appiconset"
+            DEST="$(find ios -type d -name Assets.xcassets | head -n1)"
+            mkdir -p "$DEST/AppIcon.appiconset"
+            cp ios-templates/AppIcon.appiconset/* "$DEST/AppIcon.appiconset/"
+          fi
+          find ios -name "AppIcon*" -maxdepth 8 | head -n 20
+
+      - name: 导入签名证书
+        if: ${{ inputs.mode == 'signed' }}
+        env:
+          CERT_P12_BASE64: ${{ secrets.CERT_P12_BASE64 }}
+          CERT_PASSWORD: ${{ secrets.CERT_PASSWORD }}
+          PROFILE_BASE64: ${{ secrets.PROFILE_BASE64 }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+        run: |
+          set -eux
+          echo "$CERT_P12_BASE64" | base64 -d > /tmp/cert.p12
+          security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+          security import /tmp/cert.p12 -k build.keychain -P "$CERT_PASSWORD" \
+            -T /usr/bin/codesign -T /usr/bin/security
+          security set-key-partition-list -S apple-tool:,apple:,codesign: \
+            -s -k "$KEYCHAIN_PASSWORD" build.keychain
+          mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
+          echo "$PROFILE_BASE64" | base64 -d > "$HOME/Library/MobileDevice/Provisioning Profiles/profile.mobileprovision"
+          security find-identity -v -p codesigning build.keychain
+
+      - name: Archive
+        env:
+          MODE: ${{ inputs.mode || 'unsigned' }}
+        run: |
+          set -eux
+          if [ "$MODE" = "signed" ]; then
+            SIGN_FLAGS="-allowProvisioningUpdates"
+          else
+            SIGN_FLAGS='CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" CODE_SIGN_ENTITLEMENTS=""'
+          fi
+          xcodebuild -workspace ios/App/App.xcworkspace \
+            -scheme App \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination "generic/platform=iOS" \
+            -archivePath build/App.xcarchive \
+            $SIGN_FLAGS \
+            archive
+
+      - name: 导出 / 打包 .ipa
+        env:
+          MODE: ${{ inputs.mode || 'unsigned' }}
+          METHOD: ${{ inputs.method || 'development' }}
+          TEAM_ID: ${{ secrets.TEAM_ID }}
+        run: |
+          set -eux
+          mkdir -p build/ipa
+          if [ "$MODE" = "signed" ]; then
+            python3 scripts/make-export-options.py \
+              --method "$METHOD" --team "$TEAM_ID" \
+              --bundle "$BUNDLE_ID" --out /tmp/ExportOptions.plist
+            xcodebuild -exportArchive \
+              -archivePath build/App.xcarchive \
+              -exportOptionsPlist /tmp/ExportOptions.plist \
+              -exportPath build/ipa \
+              -allowProvisioningUpdates
+          else
+            APP="$(find build/App.xcarchive/Products/Applications -maxdepth 1 -name '*.app' | head -n1)"
+            python3 scripts/pack-ipa.py "$APP" "build/ipa/$APP_NAME.ipa"
+          fi
+          echo "== 产物 =="
+          ls -lh build/ipa
+          python3 scripts/pack-ipa.py --list build/ipa/*.ipa | head -n 25
+
+      - name: 上传产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: Skroutz-ipa
+          path: build/ipa/*.ipa
+          if-no-files-found: error
+          retention-days: 14
