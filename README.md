@@ -63,6 +63,7 @@ python scripts/preflight.py                          # 推 CI 前体检（语法
 python scripts/make-ios-assets.py assets/icon-source.png .   # 重生成图标与启动图
 python scripts/pack-ipa.py <App.app|App.xcarchive> out.ipa   # .app → .ipa
 python scripts/pack-ipa.py --list out.ipa                    # 列 .ipa 内容自检
+python scripts/verify-ipa.py Skroutz.ipa --expect-id com.zaloranice.skroutz --expect-name Skroutz   # 整包体检
 python scripts/make-export-options.py --method ad-hoc --team TEAM_ID --bundle com.zaloranice.skroutz
 bash scripts/resign-ipa.sh in.ipa out.ipa "证书名" x.mobileprovision   # 换证书重签
 ```
@@ -106,6 +107,7 @@ bash scripts/resign-ipa.sh in.ipa out.ipa "证书名" x.mobileprovision   # 换�
 | scripts/preflight.py | 推 CI 前体检 |
 | scripts/make-ios-assets.py | 源图 → appiconset + 启动图 + 预览 |
 | scripts/pack-ipa.py | .app / .xcarchive → .ipa（跨平台，带 --list） |
+| scripts/verify-ipa.py | 校验 .ipa：zip 完整性 / Info.plist 字段 / Mach-O / 图标 / 签名 |
 | scripts/pack-ipa.sh | 同上，macOS/Linux bash 版 |
 | scripts/resign-ipa.sh | 换证书重签已有 ipa |
 | scripts/make-export-options.py | 生成 `ExportOptions.plist` |

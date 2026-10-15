@@ -38,7 +38,11 @@ git push -u origin main
 1. GitHub 仓库页 → **Actions** → 左侧 **build-ipa** → 右侧 **Run workflow**
 2. `mode` 选 **unsigned**（先走这条，不需要任何证书）
 3. 等 8~15 分钟，Jobs 变绿后进这次 run，页面底部 **Artifacts** 下载 **Skroutz-ipa**
-4. 解压得到 `Skroutz.ipa`
+4. 解压得到 `Skroutz.ipa`，本地先体检一遍：
+   ```powershell
+   python scripts/verify-ipa.py Skroutz.ipa --expect-id com.zaloranice.skroutz --expect-name Skroutz
+   ```
+   会逐项打出 zip 完整性、Payload 结构、Bundle ID/显示名、Mach-O 类型、图标尺寸、是否已签名。
 
 ### 想做签名包（上 TestFlight / Ad-Hoc 分发）
 
